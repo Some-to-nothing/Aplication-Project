@@ -1,49 +1,167 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../database/db_helper.dart';
-import '../models/event_model.dart';
-import '../services/notification_service.dart';
+import '../../database/db_helper.dart';
+import '../../models/event_model.dart';
+import '../../services/notification_service.dart';
 
 
 
-class AddEventPage extends StatefulWidget {
 
-  const AddEventPage({
+
+class EditEventPage extends StatefulWidget {
+
+
+  final EventModel event;
+
+
+
+  const EditEventPage({
+
     super.key,
+
+    required this.event,
+
   });
 
 
+
+
   @override
-  State<AddEventPage> createState() =>
-      _AddEventPageState();
+  State<EditEventPage> createState() =>
+      _EditEventPageState();
+
+
 
 }
 
 
 
 
-class _AddEventPageState extends State<AddEventPage> {
-
-
-
-  final titleController =
-      TextEditingController();
-
-
-  final noteController =
-      TextEditingController();
 
 
 
 
-  DateTime selectedDate =
-      DateTime.now();
+
+class _EditEventPageState extends State<EditEventPage> {
 
 
 
-  TimeOfDay selectedTime =
-      TimeOfDay.now();
+  late TextEditingController titleController;
+
+
+  late TextEditingController noteController;
+
+
+
+
+
+  late DateTime selectedDate;
+
+
+  late TimeOfDay selectedTime;
+
+
+
+
+
+
+
+
+
+  @override
+  void initState(){
+
+
+    super.initState();
+
+
+
+    titleController =
+        TextEditingController(
+
+
+          text:
+          widget.event.title,
+
+
+        );
+
+
+
+    noteController =
+        TextEditingController(
+
+
+          text:
+          widget.event.note,
+
+
+        );
+
+
+
+
+
+    selectedDate =
+        DateTime.parse(
+
+
+          widget.event.date,
+
+
+        );
+
+
+
+
+
+    selectedTime =
+        parseTime(
+
+
+          widget.event.time,
+
+
+        );
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+  TimeOfDay parseTime(String time){
+
+
+    List<String> data =
+    time.split(":");
+
+
+
+    return TimeOfDay(
+
+
+      hour:
+      int.parse(data[0]),
+
+
+      minute:
+      int.parse(data[1]),
+
+
+    );
+
+
+  }
+
+
 
 
 
@@ -54,46 +172,61 @@ class _AddEventPageState extends State<AddEventPage> {
   Future<void> pickDate() async {
 
 
+
     DateTime? picked =
     await showDatePicker(
 
 
-      context: context,
+
+      context:
+      context,
+
 
 
       initialDate:
       selectedDate,
 
 
+
       firstDate:
       DateTime(2024),
+
 
 
       lastDate:
       DateTime(2035),
 
 
+
     );
+
+
 
 
 
     if(picked != null){
 
 
+
       setState(() {
+
 
 
         selectedDate =
             picked;
 
 
+
       });
+
 
 
     }
 
 
+
   }
+
 
 
 
@@ -105,35 +238,47 @@ class _AddEventPageState extends State<AddEventPage> {
   Future<void> pickTime() async {
 
 
+
     TimeOfDay? picked =
     await showTimePicker(
 
 
-      context: context,
+
+      context:
+      context,
+
 
 
       initialTime:
       selectedTime,
 
 
+
     );
+
+
 
 
 
     if(picked != null){
 
 
+
       setState(() {
+
 
 
         selectedTime =
             picked;
 
 
+
       });
 
 
+
     }
+
 
 
   }
@@ -146,29 +291,43 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-  Future<void> saveEvent() async {
+
+
+
+  Future<void> updateEvent() async {
+
 
 
 
     if(titleController.text.trim().isEmpty){
 
 
+
       ScaffoldMessenger.of(context)
           .showSnackBar(
 
+
+
         const SnackBar(
+
+
 
           content:
           Text(
             "Judul kegiatan wajib diisi",
           ),
 
+
         ),
+
+
 
       );
 
 
+
       return;
+
 
     }
 
@@ -177,7 +336,11 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
+
+
+
     DateTime alarmTime = DateTime(
+
 
 
       selectedDate.year,
@@ -195,6 +358,7 @@ class _AddEventPageState extends State<AddEventPage> {
       selectedTime.minute,
 
 
+
     );
 
 
@@ -202,70 +366,46 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-    print(
-      "NOW : ${DateTime.now()}"
-    );
-
-
-    print(
-      "ALARM TIME : $alarmTime"
-    );
 
 
 
-
-
-    if(alarmTime.isBefore(DateTime.now())){
-
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-        const SnackBar(
-
-          content:
-          Text(
-            "Waktu alarm sudah lewat",
-          ),
-
-        ),
-
-      );
-
-
-      return;
-
-    }
+    EventModel event =
+    EventModel(
 
 
 
+      id:
+      widget.event.id,
 
-
-
-
-
-    final event = EventModel(
 
 
       title:
-      titleController.text,
+      titleController.text.trim(),
+
 
 
       note:
-      noteController.text,
+      noteController.text.trim(),
+
 
 
       date:
       DateFormat(
         'yyyy-MM-dd',
-      )
-          .format(selectedDate),
+      ).format(selectedDate),
+
 
 
       time:
       selectedTime.format(context),
 
 
+
+      status:
+      widget.event.status,
+
+
+
     );
 
 
@@ -273,45 +413,72 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-    int id =
-    await DBHelper.insert(
+
+
+
+    // CANCEL ALARM LAMA
+
+    await NotificationService.cancel(
+
+
+      widget.event.id!,
+
+
+    );
+
+
+
+
+
+
+
+
+    // UPDATE DATABASE
+
+
+    await DBHelper.update(
+
+
       event,
+
+
     );
 
 
 
 
 
+
+
+
+
+    // BUAT ALARM BARU
 
 
     await NotificationService.schedule(
 
 
+
       id:
-      id,
+      event.id!,
+
 
 
       title:
-      titleController.text,
+      event.title,
+
 
 
       body:
-      noteController.text,
+      event.note,
+
 
 
       time:
       alarmTime,
 
 
-    );
 
-
-
-
-
-
-    print(
-      "EVENT SAVED ID : $id"
     );
 
 
@@ -320,9 +487,9 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-    if(!mounted) return;
 
 
+    if(!mounted)return;
 
 
 
@@ -331,16 +498,27 @@ class _AddEventPageState extends State<AddEventPage> {
     ScaffoldMessenger.of(context)
         .showSnackBar(
 
+
+
       const SnackBar(
+
+
 
         content:
         Text(
-          "Jadwal berhasil disimpan",
+          "Jadwal berhasil diperbarui",
         ),
+
+
 
       ),
 
+
+
     );
+
+
+
 
 
 
@@ -348,9 +526,13 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
     Navigator.pop(
+
       context,
+
       true,
+
     );
+
 
 
 
@@ -366,6 +548,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
   @override
   void dispose(){
+
 
 
     titleController.dispose();
@@ -389,10 +572,12 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
+
 
 
     return Scaffold(
+
 
 
 
@@ -400,13 +585,17 @@ class _AddEventPageState extends State<AddEventPage> {
       AppBar(
 
 
+
         title:
         const Text(
-          "Tambah Jadwal",
+          "Edit Jadwal",
         ),
 
 
+
       ),
+
+
 
 
 
@@ -424,14 +613,15 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-
-
         child:
         ListView(
 
 
 
           children: [
+
+
+
 
 
 
@@ -475,9 +665,13 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
+
+
             const SizedBox(
               height:15,
             ),
+
+
 
 
 
@@ -527,9 +721,15 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
+
+
+
             const SizedBox(
               height:20,
             ),
+
+
+
 
 
 
@@ -558,14 +758,13 @@ class _AddEventPageState extends State<AddEventPage> {
               subtitle:
               Text(
 
+
                 DateFormat(
                   'dd MMMM yyyy',
-                )
-                    .format(selectedDate),
+                ).format(selectedDate),
+
 
               ),
-
-
 
 
 
@@ -581,7 +780,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
                 child:
                 const Text(
-                  "Pilih",
+                  "Ubah",
                 ),
 
 
@@ -594,13 +793,6 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-
-
-
-
-            const SizedBox(
-              height:10,
-            ),
 
 
 
@@ -629,13 +821,13 @@ class _AddEventPageState extends State<AddEventPage> {
               subtitle:
               Text(
 
+
                 selectedTime.format(
                   context,
                 ),
 
+
               ),
-
-
 
 
 
@@ -651,7 +843,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
                 child:
                 const Text(
-                  "Pilih",
+                  "Ubah",
                 ),
 
 
@@ -669,9 +861,13 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
+
+
             const SizedBox(
               height:40,
             ),
+
+
 
 
 
@@ -695,7 +891,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
                 onPressed:
-                saveEvent,
+                updateEvent,
 
 
 
@@ -710,13 +906,16 @@ class _AddEventPageState extends State<AddEventPage> {
                 const Text(
 
 
-                  "Simpan Jadwal",
+
+                  "Simpan Perubahan",
+
 
 
                   style:
                   TextStyle(
                     fontSize:18,
                   ),
+
 
 
                 ),
@@ -728,6 +927,7 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
             ),
+
 
 
 
@@ -748,7 +948,9 @@ class _AddEventPageState extends State<AddEventPage> {
     );
 
 
+
   }
+
 
 
 }
