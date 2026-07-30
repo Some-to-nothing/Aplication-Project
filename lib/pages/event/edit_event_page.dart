@@ -103,14 +103,9 @@ class _EditEventPageState extends State<EditEventPage> {
 
 
 
-    selectedDate =
-        DateTime.parse(
-
-
-          widget.event.date,
-
-
-        );
+selectedDate = DateTime.tryParse(
+  widget.event.date,
+) ?? DateTime.now();
 
 
 
@@ -458,28 +453,27 @@ class _EditEventPageState extends State<EditEventPage> {
     await NotificationService.schedule(
 
 
-
-      id:
-      event.id!,
-
+  id:
+  event.id!,
 
 
-      title:
-      event.title,
+  eventId:
+  event.id!,
 
 
-
-      body:
-      event.note,
-
+  title:
+  event.title,
 
 
-      time:
-      alarmTime,
+  body:
+  event.note,
 
 
+  time:
+  alarmTime,
 
-    );
+
+);
 
 
 

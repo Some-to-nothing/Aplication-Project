@@ -28,7 +28,7 @@ class DBHelper {
 
       join(
         await getDatabasesPath(),
-        "prokelom.db",
+        "remindus.db",
       ),
 
 

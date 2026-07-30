@@ -4,20 +4,27 @@ plugins {
 }
 
 android {
-    namespace = "com.example.prokelomv2"
+    namespace = "com.rizqymiko.remindus"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    sourceSets {
+        getByName("main") {
+            res.srcDirs(
+                "src/main/res"
+            )
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
 
-        // WAJIB untuk flutter_local_notifications
         isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
-        applicationId = "com.example.prokelomv2"
+        applicationId = "com.rizqymiko.remindus"
 
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

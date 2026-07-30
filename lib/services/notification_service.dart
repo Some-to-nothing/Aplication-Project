@@ -1,22 +1,30 @@
 import 'dart:convert';
-import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+
+import 'debug_service.dart';
 
 import '../config/app_navigator.dart';
 import '../pages/alarm/alarm_screen.dart';
 
 
 
-
-
 class NotificationService {
 
 
-
   static final FlutterLocalNotificationsPlugin plugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
+
+
+
+  // CHANNEL BARU
+  // Android menyimpan channel lama.
+  // Ganti ID supaya membuat channel baru.
+  static const String channelId =
+      "remindus_alarm_channel_v2";
+
 
 
 
@@ -25,171 +33,268 @@ class NotificationService {
   static Future<void> initialize() async {
 
 
-
-    const android =
-    AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    try {
 
 
-
-    const settings =
-    InitializationSettings(
-      android: android,
-    );
+      const androidInit =
+      AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
 
 
 
-
-
-    await plugin.initialize(
-
-
-      settings,
-
-
-      onDidReceiveNotificationResponse:
-          (response){
-
-
-
-        if(response.payload == null){
-          return;
-        }
+      const settings =
+      InitializationSettings(
+        android: androidInit,
+      );
 
 
 
 
-        final data =
-        jsonDecode(
-          response.payload!,
-        );
+
+      await plugin.initialize(
+
+
+        settings,
+
+
+        onDidReceiveNotificationResponse:
+
+        (response) async {
 
 
 
-        navigatorKey.currentState?.push(
+          await DebugService.log(
 
+            "NOTIFICATION CLICK : ${response.payload}",
 
-          MaterialPageRoute(
-
-
-            builder: (_)=>
-
-            AlarmScreen(
-
-
-              eventId:
-              data["eventId"],
+          );
 
 
 
-              notificationId:
-              data["notificationId"],
+          if(response.payload == null){
+
+            return;
+
+          }
 
 
 
-              title:
-              data["title"],
+
+          final data =
+
+          jsonDecode(
+
+            response.payload!,
+
+          );
 
 
 
-              body:
-              data["body"],
 
 
+          navigatorKey.currentState?.push(
+
+
+            MaterialPageRoute(
+
+
+              builder: (_) => AlarmScreen(
+
+
+                eventId:
+
+                data["eventId"],
+
+
+
+                notificationId:
+
+                data["notificationId"],
+
+
+
+                title:
+
+                data["title"],
+
+
+
+                body:
+
+                data["body"],
+
+
+
+              ),
 
             ),
 
 
-          ),
-
-
-        );
+          );
 
 
 
-      },
+        },
 
 
-    );
+      );
 
 
 
 
 
 
-    await plugin
-        .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+
+      await plugin
+
+          .resolvePlatformSpecificImplementation<
+
+          AndroidFlutterLocalNotificationsPlugin>()
+
+          ?.requestNotificationsPermission();
 
 
 
 
 
-    await plugin
-        .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
+      await DebugService.log(
+
+        "NOTIFICATION PERMISSION DONE",
+
+      );
 
 
 
 
 
 
-    const channel =
-    AndroidNotificationChannel(
 
+      await plugin
 
-      "alarm_channel",
+          .resolvePlatformSpecificImplementation<
 
+          AndroidFlutterLocalNotificationsPlugin>()
 
-      "Alarm Jadwal",
-
-
-      description:
-      "Alarm kegiatan",
-
-
-      importance:
-      Importance.max,
-
-
-      playSound:
-      true,
-
-
-      enableVibration:
-      true,
-
-
-      sound:
-      RawResourceAndroidNotificationSound(
-        "alarm",
-      ),
-
-
-    );
+          ?.requestExactAlarmsPermission();
 
 
 
 
 
-    await plugin
-        .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(
-      channel,
-    );
+      await DebugService.log(
+
+        "EXACT ALARM PERMISSION DONE",
+
+      );
 
 
 
-    print(
-      "NOTIFICATION READY",
-    );
+
+
+
+
+
+
+      const channel =
+
+      AndroidNotificationChannel(
+
+
+        channelId,
+
+
+        "RemindUs Alarm",
+
+
+        description:
+
+        "Personal reminder alarm",
+
+
+
+        importance:
+
+        Importance.max,
+
+
+
+        playSound:
+
+        true,
+
+
+
+        enableVibration:
+
+        true,
+
+
+
+      );
+
+
+
+
+
+
+
+
+      await plugin
+
+          .resolvePlatformSpecificImplementation<
+
+          AndroidFlutterLocalNotificationsPlugin>()
+
+          ?.createNotificationChannel(
+
+        channel,
+
+      );
+
+
+
+
+
+
+      await DebugService.log(
+
+        "CHANNEL CREATED : $channelId",
+
+      );
+
+
+
+
+      await DebugService.log(
+
+        "INITIALIZE SUCCESS",
+
+      );
+
+
+
+    }
+
+
+    catch(e){
+
+
+      await DebugService.log(
+
+        "INITIALIZE ERROR : $e",
+
+      );
+
+
+    }
 
 
   }
+
+
+
+
 
 
 
@@ -205,6 +310,9 @@ class NotificationService {
     required int id,
 
 
+    required int eventId,
+
+
     required String title,
 
 
@@ -214,191 +322,214 @@ class NotificationService {
     required DateTime time,
 
 
-
   }) async {
 
 
 
+    try {
 
-    final tzTime =
-    tz.TZDateTime.from(
-      time,
-      tz.local,
-    );
 
-    print(
-  """
-===== SCHEDULE DEBUG =====
-ID       : $id
-TITLE    : $title
-TIME     : $tzTime
-NOW      : ${tz.TZDateTime.now(tz.local)}
-==========================
-"""
-);
 
+      final tzTime =
 
 
+      tz.TZDateTime.from(
 
 
-    final payload =
-    jsonEncode({
+        time,
 
 
-      "eventId":
-      id,
+        tz.local,
 
 
-      "notificationId":
-      id,
+      );
 
 
-      "title":
-      title,
 
 
-      "body":
-      body,
 
 
-    });
 
 
+      final payload =
 
 
+      jsonEncode({
 
 
-    await plugin.zonedSchedule(
+        "eventId":
 
+        eventId,
 
 
-      id,
+        "notificationId":
 
+        id,
 
 
-      title,
+        "title":
 
+        title,
 
 
-      body,
+        "body":
 
+        body,
 
+      });
 
-      tzTime,
 
 
 
-      NotificationDetails(
 
 
-        android:
 
 
-        AndroidNotificationDetails(
 
+      await plugin.zonedSchedule(
 
 
-          "alarm_channel",
+        id,
 
 
+        title,
 
-          "Alarm Jadwal",
 
+        body,
 
 
-          channelDescription:
-          "Alarm kegiatan",
+        tzTime,
 
 
 
-          importance:
-          Importance.max,
+        const NotificationDetails(
 
 
 
-          priority:
-          Priority.high,
+          android:
 
+          AndroidNotificationDetails(
 
 
-          category:
-          AndroidNotificationCategory.alarm,
 
+            channelId,
 
 
-          playSound:
-          true,
 
+            "RemindUs Alarm",
 
 
-          sound:
-          const RawResourceAndroidNotificationSound(
-            "alarm",
+
+            channelDescription:
+
+            "Personal reminder alarm",
+
+
+
+            importance:
+
+            Importance.max,
+
+
+
+            priority:
+
+            Priority.high,
+
+
+
+            category:
+
+            AndroidNotificationCategory.alarm,
+
+
+
+            playSound:
+
+            true,
+
+
+
+            enableVibration:
+
+            true,
+
+
+
+            fullScreenIntent:
+
+            true,
+
+
+
+            autoCancel:
+
+            false,
+
+
+
           ),
-
-
-
-          enableVibration:
-          true,
-
-
-
-          vibrationPattern:
-          Int64List.fromList(
-
-            [
-
-              0,
-
-              1000,
-
-              500,
-
-              1000,
-
-            ],
-
-          ),
-
-
-
-          fullScreenIntent:
-          true,
-
 
 
         ),
 
 
-      ),
 
 
+        payload:
 
-
-      payload:
-      payload,
+        payload,
 
 
 
 
 
-      androidScheduleMode:
+        androidScheduleMode:
 
-      AndroidScheduleMode.exactAllowWhileIdle,
+        AndroidScheduleMode.exactAllowWhileIdle,
 
 
-
-    );
-
+      );
 
 
 
-    print(
-      "ALARM REGISTERED : $title",
-    );
+
+
+
+
+      await DebugService.log(
+
+        "ALARM REGISTERED : $title",
+
+      );
+
+
+
+    }
+
+
+
+    catch(e){
+
+
+
+      await DebugService.log(
+
+        "SCHEDULE ERROR : $e",
+
+      );
+
+
+
+    }
 
 
   }
+
+
+
+
+
 
 
 
@@ -412,114 +543,181 @@ NOW      : ${tz.TZDateTime.now(tz.local)}
 
 
 
-    final payload =
-    jsonEncode({
-
-
-      "eventId":
-      999,
-
-
-      "notificationId":
-      999,
-
-
-      "title":
-      "TEST ALARM",
-
-
-      "body":
-      "Tes notification",
-
-
-    });
+    try {
 
 
 
+      final payload =
 
 
-
-    await plugin.show(
-
+      jsonEncode({
 
 
-      999,
+        "eventId":
+
+        999,
 
 
+        "notificationId":
 
-      "TEST ALARM",
+        999,
 
 
+        "title":
 
-      "Tes notification",
+        "RemindUs Test Alarm",
+
+
+        "body":
+
+        "Ini adalah percobaan alarm",
+
+      });
 
 
 
 
 
-      const NotificationDetails(
+
+
+      await plugin.show(
 
 
 
-        android:
-
-        AndroidNotificationDetails(
+        999,
 
 
 
-          "alarm_channel",
+        "RemindUs Test Alarm",
 
 
 
-          "Alarm Jadwal",
+        "Ini adalah percobaan alarm",
 
 
 
-          importance:
-          Importance.max,
+
+        const NotificationDetails(
 
 
 
-          priority:
-          Priority.high,
+          android:
+
+          AndroidNotificationDetails(
 
 
 
-          category:
-          AndroidNotificationCategory.alarm,
+            channelId,
 
 
 
-          fullScreenIntent:
-          true,
+            "RemindUs Alarm",
 
 
 
-          sound:
-          RawResourceAndroidNotificationSound(
-            "alarm",
+            channelDescription:
+
+            "Personal reminder alarm",
+
+
+
+
+            importance:
+
+            Importance.max,
+
+
+
+            priority:
+
+            Priority.high,
+
+
+
+            category:
+
+            AndroidNotificationCategory.alarm,
+
+
+
+            playSound:
+
+            true,
+
+
+
+            enableVibration:
+
+            true,
+
+
+
+            fullScreenIntent:
+
+            true,
+
+
+
+            autoCancel:
+
+            false,
+
+
+
           ),
-
 
 
         ),
 
 
-      ),
+
+
+
+        payload:
+
+        payload,
+
+
+
+      );
 
 
 
 
-      payload:
-      payload,
 
 
 
-    );
+      await DebugService.log(
+
+        "TEST ALARM SENT TO PHONE",
+
+      );
+
+
+
+    }
+
+
+
+    catch(e){
+
+
+      await DebugService.log(
+
+        "TEST ALARM ERROR : $e",
+
+      );
+
+
+    }
 
 
 
   }
+
+
+
+
 
 
 
@@ -530,17 +728,30 @@ NOW      : ${tz.TZDateTime.now(tz.local)}
 
 
   static Future<void> cancel(
+
       int id
+
       ) async {
 
 
+
     await plugin.cancel(
+
       id,
+
     );
 
 
-  }
 
+    await DebugService.log(
+
+      "CANCEL : $id",
+
+    );
+
+
+
+  }
 
 
 

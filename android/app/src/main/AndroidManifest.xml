@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
 
     <!-- Notification Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -33,7 +34,7 @@
     <application
 
 
-        android:label="PROKELOM V3"
+        android:label="RemindUs"
 
 
         android:name="${applicationName}"

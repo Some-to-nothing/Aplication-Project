@@ -15,7 +15,7 @@ class AssetConfig {
 
 
   static const String logo =
-      "assets/images/logo/prokelom_logo.png";
+      "assets/images/logo/remindus_logo.jpeg";
 
 
 }

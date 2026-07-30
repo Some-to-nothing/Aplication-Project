@@ -67,9 +67,13 @@ class _AlarmScreenState
 
   Future<void> startAlarm() async {
 
-    await AlarmController.startAlarm();
+  await AlarmController.startAlarm(
 
-  }
+    eventId: widget.eventId,
+
+  );
+
+}
 
 
 
@@ -241,40 +245,49 @@ class _AlarmScreenState
 
 
 
-              const Text(
+              Column(
+
+  children: [
+
+    const Text(
+
+      "RemindUs",
+
+      style: TextStyle(
+
+        color: Colors.white,
+
+        fontSize: 30,
+
+        fontWeight: FontWeight.bold,
+
+      ),
+
+    ),
 
 
-
-                "PROKELOM V3",
-
-
-
-                style:
-
-                TextStyle(
+    const SizedBox(
+      height: 8,
+    ),
 
 
+    const Text(
 
-                  color:
-                  Colors.white,
+      "Never Miss What Matters",
 
+      style: TextStyle(
 
+        color: Colors.white70,
 
-                  fontSize:
-                  30,
+        fontSize: 14,
 
+      ),
 
+    ),
 
-                  fontWeight:
-                  FontWeight.bold,
+  ],
 
-
-
-                ),
-
-
-
-              ),
+),
 
 
 

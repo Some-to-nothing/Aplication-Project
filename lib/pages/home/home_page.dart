@@ -374,7 +374,7 @@ class _HomePageState extends State<HomePage> {
 
               accountName:
               Text(
-                "PROKELOM V3",
+                "RemindUs",
               ),
 
 
@@ -480,7 +480,7 @@ class _HomePageState extends State<HomePage> {
 
         title:
         const Text(
-          "PROKELOM V3",
+          "RemindUs",
         ),
 
 

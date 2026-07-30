@@ -297,27 +297,31 @@ class _AddEventPageState extends State<AddEventPage> {
 
 
 
-      id:
-      id,
+  id:
+  id,
+
+
+  eventId:
+  id,
 
 
 
-      title:
-      titleController.text,
+  title:
+  titleController.text,
 
 
 
-      body:
-      noteController.text,
+  body:
+  noteController.text,
 
 
 
-      time:
-      alarmTime,
+  time:
+  alarmTime,
 
 
 
-    );
+);
 
 
 
